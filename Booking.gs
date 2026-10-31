@@ -36,7 +36,7 @@ function studentProfileUpdate_(p){
   var s=session_(p,['STUDENT']),st=rows_('Students').filter(function(x){return x.UserID===s.userId&&x.Status==='Active';})[0];
   if(!st)throw new Error('Student profile not found.');
   var name=clean_(p.name,100),mobile=clean_(p.mobile,10),village=clean_(p.village,100),guardian=clean_(p.guardianName,100),gm=clean_(p.guardianMobile,10);
-  if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||!village||guardian.length<2||!/^[6-9]\\d{9}$/.test(gm))throw new Error('कृपया सही नाम, गाँव और 10 अंकों के मोबाइल नंबर भरें।');var guardianChanged=guardian!==st.GuardianName||gm!==st.GuardianMobile;if(guardianChanged&&p.consent!==true)throw new Error('Parent/guardian contact बदलने पर दोबारा consent की पुष्टि जरूरी है।');
+  if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||!village||guardian.length<2||!/^[6-9]\d{9}$/.test(gm))throw new Error('कृपया सही नाम, गाँव और 10 अंकों के मोबाइल नंबर भरें।');var guardianChanged=guardian!==st.GuardianName||gm!==st.GuardianMobile;if(guardianChanged&&p.consent!==true)throw new Error('Parent/guardian contact बदलने पर दोबारा consent की पुष्टि जरूरी है।');
   var duplicate=rows_('Users').some(function(u){return u.ID!==s.userId&&u.Mobile===mobile;});
   if(duplicate)throw new Error('यह मोबाइल नंबर दूसरे account में उपयोग हो रहा है।');
   update_('Students',st.ID,{Name:name,Mobile:mobile,Village:village,GuardianName:guardian,GuardianMobile:gm,Consent:'YES'});if(guardianChanged)insert_('Consent',{ID:id_('CON'),StudentID:st.ID,GuardianName:guardian,GuardianMobile:gm,ConsentGiven:'YES',RecordedAt:now_()});
@@ -49,7 +49,7 @@ function adminSettingsUpdate_(p){
   if(v.siteName!==undefined){var n=clean_(v.siteName,80);if(n.length<2)throw new Error('Website name is required.');PropertiesService.getScriptProperties().setProperty('SITE_NAME',n);}
   if(v.fee!==undefined){var fee=Number(v.fee);if(!isFinite(fee)||fee<0||fee>5000)throw new Error('Coordination fee must be between 0 and 5000.');PropertiesService.getScriptProperties().setProperty('COORD_FEE',String(fee));}
   if(v.supportEmail!==undefined){var em=clean_(v.supportEmail,160);if(em&&!validEmail_(em))throw new Error('Invalid support email.');PropertiesService.getScriptProperties().setProperty('SUPPORT_EMAIL',em);}
-  if(v.supportPhone!==undefined){var ph=clean_(v.supportPhone,15);if(ph&&!/^[6-9]\\d{9}$/.test(ph))throw new Error('Support phone must be a valid Indian mobile number.');PropertiesService.getScriptProperties().setProperty('SUPPORT_PHONE',ph);}
+  if(v.supportPhone!==undefined){var ph=clean_(v.supportPhone,15);if(ph&&!/^[6-9]\d{9}$/.test(ph))throw new Error('Support phone must be a valid Indian mobile number.');PropertiesService.getScriptProperties().setProperty('SUPPORT_PHONE',ph);}
   audit_(s.userId,'SETTINGS_UPDATE','Settings','Website settings changed');
   return{ok:true,message:'Settings saved.'};
 }
@@ -73,7 +73,7 @@ function adminUpdateDriver_(p){
   var s=session_(p,['ADMIN']),id=clean_(p.driverId,80),d=rows_('Drivers').filter(function(x){return x.ID===id;})[0];
   if(!d)throw new Error('Driver not found.');
   var name=clean_(p.name,100),mobile=clean_(p.mobile,10),license=clean_(p.license,50),status=p.status;
-  if(name.length<2||!/^[6-9]\\d{9}$/.test(mobile)||['Active','Inactive'].indexOf(status)<0)throw new Error('Driver name, valid mobile and account status are required.');
+  if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||['Active','Inactive'].indexOf(status)<0)throw new Error('Driver name, valid mobile and account status are required.');
   if(rows_('Users').some(function(u){return u.ID!==d.UserID&&u.Mobile===mobile;}))throw new Error('Mobile number is already used by another account.');
   update_('Drivers',id,{Name:name,Mobile:mobile,LicenseNumber:license,Status:status});
   update_('Users',d.UserID,{Name:name,Mobile:mobile,Status:status});
