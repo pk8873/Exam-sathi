@@ -66,3 +66,39 @@ function adminReportPdf_(p){
   return{ok:true,name:blob.getName(),base64:Utilities.base64Encode(blob.getBytes()),count:bookings.length,totalReceived:total};
 }
 function escHtml_(v){return String(v===undefined||v===null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+
+
+/** Administrator can update a driver's profile and account state. */
+function adminUpdateDriver_(p){
+  var s=session_(p,['ADMIN']),id=clean_(p.driverId,80),d=rows_('Drivers').filter(function(x){return x.ID===id;})[0];
+  if(!d)throw new Error('Driver not found.');
+  var name=clean_(p.name,100),mobile=clean_(p.mobile,10),license=clean_(p.license,50),status=p.status;
+  if(name.length<2||!/^[6-9]\\d{9}$/.test(mobile)||['Active','Inactive'].indexOf(status)<0)throw new Error('Driver name, valid mobile and account status are required.');
+  if(rows_('Users').some(function(u){return u.ID!==d.UserID&&u.Mobile===mobile;}))throw new Error('Mobile number is already used by another account.');
+  update_('Drivers',id,{Name:name,Mobile:mobile,LicenseNumber:license,Status:status});
+  update_('Users',d.UserID,{Name:name,Mobile:mobile,Status:status});
+  audit_(s.userId,'DRIVER_UPDATE','Drivers',id+' status='+status);
+  return{ok:true,message:'Driver profile updated.'};
+}
+
+/** Rescheduling is limited to trips that have not started. */
+function adminTripReschedule_(p){
+  var s=session_(p,['ADMIN']),id=clean_(p.tripId,80),pickup=clean_(p.pickupTime,40);
+  var t=rows_('Trips').filter(function(x){return x.ID===id;})[0];
+  if(!t)throw new Error('Trip not found.');
+  if(['Assigned','Ready'].indexOf(t.Status)<0)throw new Error('Only trips that have not started can be rescheduled.');
+  var dt=new Date(pickup);
+  if(!pickup||isNaN(dt.getTime())||dt.getTime()<Date.now()-60000)throw new Error('Choose a valid future pickup date and time.');
+  update_('Trips',id,{PickupTime:dt.toISOString()});
+  rows_('TripStudents').filter(function(x){return x.TripID===id;}).forEach(function(x){
+    var b=rows_('Bookings').filter(function(z){return z.ID===x.BookingID;})[0];
+    if(b){var st=rows_('Students').filter(function(z){return z.ID===b.StudentID;})[0];if(st)notify_(st.UserID,'Pickup time changed','आपकी trip '+id+' का नया pickup time: '+dt.toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}));}
+  });
+  audit_(s.userId,'TRIP_RESCHEDULE','Trips',id+' => '+dt.toISOString());
+  return{ok:true,message:'Trip pickup time updated and students notified in-app.'};
+}
+
+function adminAuditData_(p){
+  session_(p,['ADMIN']);
+  return{ok:true,logs:rows_('AuditLogs').slice(-150).reverse()};
+}
