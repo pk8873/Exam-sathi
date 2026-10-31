@@ -73,11 +73,11 @@ async function downloadAdminReport(){
 }
 function studentProfileModal(){
  let s=DATA.student;
- let html='<div class="modal-bg" id="modal"><div class="modal"><div class="modal-head"><h3>Edit student profile</h3><button class="btn ghost sm" onclick="closeModal()">✕</button></div>'+[['name','Full name',s.Name],['mobile','Mobile',s.Mobile],['village','Village',s.Village],['guardianName','Parent / guardian',s.GuardianName],['guardianMobile','Guardian mobile',s.GuardianMobile]].map(x=>'<div class="field"><label>'+x[1]+'</label><input id="profile_'+x[0]+'" value="'+esc(x[2])+'"></div>').join('')+'<button class="btn" onclick="saveStudentProfile()">Save profile</button></div></div>';
+ let html='<div class="modal-bg" id="modal"><div class="modal"><div class="modal-head"><h3>Edit student profile</h3><button class="btn ghost sm" onclick="closeModal()">✕</button></div>'+[['name','Full name',s.Name],['mobile','Mobile',s.Mobile],['village','Village',s.Village],['guardianName','Parent / guardian',s.GuardianName],['guardianMobile','Guardian mobile',s.GuardianMobile]].map(x=>'<div class="field"><label>'+x[1]+'</label><input id="profile_'+x[0]+'" value="'+esc(x[2])+'"></div>').join('')+'<label class="muted"><input id="profile_consent" type="checkbox"> I reconfirm parent/guardian consent if guardian details are changed.</label><button class="btn" onclick="saveStudentProfile()">Save profile</button></div></div>';
  $('app').insertAdjacentHTML('beforeend',html);
 }
 async function saveStudentProfile(){
- try{let p={};['name','mobile','village','guardianName','guardianMobile'].forEach(k=>p[k]=$('profile_'+k).value);let r=await call('studentProfileUpdate',p);toast(r.message);closeModal();studentView();}catch(e){toast(e.message,true);}
+ try{let p={};['name','mobile','village','guardianName','guardianMobile'].forEach(k=>p[k]=$('profile_'+k).value);p.consent=$('profile_consent').checked;let r=await call('studentProfileUpdate',p);toast(r.message);closeModal();studentView();}catch(e){toast(e.message,true);}
 }
 
 </script>
