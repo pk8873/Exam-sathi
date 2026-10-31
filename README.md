@@ -8,6 +8,7 @@ A Google Apps Script + Google Sheets application starter for coordinating studen
 - `Database.gs` — database schema
 - `Auth.gs` — student registration, login, hashed passwords, short-lived sessions and one-time admin bootstrap
 - `Booking.gs` — booking, coordinator operations, driver portal, trip grouping, capacity checks, manual payments, notifications and PDF receipts
+- `Diagnostics.gs` — schema diagnostics, capacity checks and private Drive backup helper
 - `Index.html`, `Styles.html`, `App.html` — UI, styles and client-side workflows
 - `appsscript.json` — Apps Script V8 manifest
 
