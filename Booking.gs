@@ -36,7 +36,7 @@ function studentProfileUpdate_(p){
   var s=session_(p,['STUDENT']),st=rows_('Students').filter(function(x){return x.UserID===s.userId&&x.Status==='Active';})[0];
   if(!st)throw new Error('Student profile not found.');
   var name=clean_(p.name,100),mobile=clean_(p.mobile,10),village=clean_(p.village,100),guardian=clean_(p.guardianName,100),gm=clean_(p.guardianMobile,10);
-  if(name.length<2||!/^[6-9]\\d{9}$/.test(mobile)||!village||guardian.length<2||!/^[6-9]\\d{9}$/.test(gm))throw new Error('कृपया सही नाम, गाँव और 10 अंकों के मोबाइल नंबर भरें।');var guardianChanged=guardian!==st.GuardianName||gm!==st.GuardianMobile;if(guardianChanged&&p.consent!==true)throw new Error('Parent/guardian contact बदलने पर दोबारा consent की पुष्टि जरूरी है।');
+  if(name.length<2||!/^[6-9]\d{9}$/.test(mobile)||!village||guardian.length<2||!/^[6-9]\\d{9}$/.test(gm))throw new Error('कृपया सही नाम, गाँव और 10 अंकों के मोबाइल नंबर भरें।');var guardianChanged=guardian!==st.GuardianName||gm!==st.GuardianMobile;if(guardianChanged&&p.consent!==true)throw new Error('Parent/guardian contact बदलने पर दोबारा consent की पुष्टि जरूरी है।');
   var duplicate=rows_('Users').some(function(u){return u.ID!==s.userId&&u.Mobile===mobile;});
   if(duplicate)throw new Error('यह मोबाइल नंबर दूसरे account में उपयोग हो रहा है।');
   update_('Students',st.ID,{Name:name,Mobile:mobile,Village:village,GuardianName:guardian,GuardianMobile:gm,Consent:'YES'});if(guardianChanged)insert_('Consent',{ID:id_('CON'),StudentID:st.ID,GuardianName:guardian,GuardianMobile:gm,ConsentGiven:'YES',RecordedAt:now_()});
@@ -54,7 +54,7 @@ function adminSettingsUpdate_(p){
   return{ok:true,message:'Settings saved.'};
 }
 function adminReportPdf_(p){
-  var s=session_(p,['ADMIN']),from=p.from?new Date(p.from):null,to=p.to?new Date(p.to):null;
+  var s=session_(p,['ADMIN']),from=p.from?new Date(p.from+'T00:00:00'):null,to=p.to?new Date(p.to+'T23:59:59.999'):null;
   if(from&&isNaN(from.getTime())||to&&isNaN(to.getTime()))throw new Error('Invalid report date range.');
   var bookings=rows_('Bookings').filter(function(b){var d=new Date(b.CreatedAt);return(!from||d>=from)&&(!to||d<=to);});
   var payments=rows_('Payments').filter(function(x){var d=new Date(x.CreatedAt);return(!from||d>=from)&&(!to||d<=to);});
