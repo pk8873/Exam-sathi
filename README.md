@@ -27,20 +27,26 @@ Implemented in source:
 - Manual cash/UPI payment recording and UPI reference validation
 - In-app notifications
 - Student-owned PDF receipt generation
+- CSV booking export and admin-generated PDF booking report
+- Student self-service profile editing and administrator account activation/deactivation
+- Administrator settings for site name, coordination fee and support contact details
+- Edit forms for existing exams, exam centres and routes
+- Trip status propagation to linked bookings (Ready for Pickup, In Progress, Completed, Cancelled)
+- Cumulative received-payment checks to prevent recording more than the booking total
 - CSV booking export and audit log entries
 
 Not yet production-complete:
 - No automatic WhatsApp delivery, SMS OTP, live GPS, online payment gateway, automatic email delivery, automated refund processing or emergency dispatch.
 - No full PWA/offline service-worker installation. Apps Script web apps do not provide normal static asset hosting/service-worker controls; the manifest endpoint is only a best-effort metadata endpoint and is not proof of PWA installation.
-- Reports are currently a basic booking CSV, not the complete report suite.
+- Reports include booking CSV and a basic all-bookings PDF summary; date-filtered, route-wise, exam-wise, driver-payable and accounting-grade reports are not complete.
 - No self-service password reset; an administrator must handle account recovery securely.
-- Driver passenger details are limited to trips assigned to that driver, but parent phone access still needs a stricter per-trip consent/authorization workflow before live use.
-- Vehicle/driver CRUD, student edit/deactivation, exam/centre/route edit screens, trip rescheduling, PDF management reports and full automated test coverage remain to be completed.
+- Driver passenger manifest is limited to student names for trips assigned to that driver. Guardian phone numbers are not shown in the driver interface.
+- Full driver CRUD, complete vehicle edit workflow, student deletion (intentionally avoided), exam/centre/route archival controls, trip rescheduling, date-filtered/route-wise financial reports and full automated test coverage remain to be completed.
 - Password storage uses salted repeated SHA-256 because Apps Script has no built-in password-hashing/KDF API. This is not a substitute for a dedicated identity provider and requires a security review before commercial launch.
 
 **Do not use this build to transport real students until you have completed the remaining security, privacy, legal, operational and field-verification work.** Verify all drivers, permits, insurance, fitness certificates, fare rules and parent consent in person. This app coordinates requests; it does not itself provide transport, guarantee safety, or provide emergency response.
 
-## Deployment (beginner guide)
+## Recent functional additions\n\nThe current `main` branch includes student profile editing, admin student activation/deactivation, editable exam/centre/route records, site settings, a basic PDF booking report, trip-status synchronization and cumulative payment amount checks. These are source-level implementations; run the deployment and manual acceptance tests below before relying on them.\n\n## Deployment (beginner guide)
 
 ### 1. Create the database
 1. Open [Google Sheets](https://sheets.google.com) and create a blank spreadsheet named `Exam Saathi Database`.
