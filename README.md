@@ -28,12 +28,12 @@ Implemented in source:
 - In-app notifications
 - Student-owned PDF receipt generation
 - CSV booking export and admin-generated PDF booking report
-- Student self-service profile editing and administrator account activation/deactivation
+- Student self-service profile editing with explicit re-consent when guardian details change, and administrator account activation/deactivation
 - Administrator settings for site name, coordination fee and support contact details
 - Edit forms for existing exams, exam centres and routes
-- Trip status propagation to linked bookings (Ready for Pickup, In Progress, Completed, Cancelled)
+- Trip status propagation to linked bookings (Ready for Pickup, In Progress, Completed, Cancelled); current parent consent and active student status are checked before confirmation/assignment
 - Cumulative received-payment checks to prevent recording more than the booking total
-- CSV booking export and audit log entries
+- Expanded admin metrics for upcoming/completed trips, vehicle fare totals and completed-trip coordination fees\n- Non-destructive authentication/input-validation diagnostic functions\n- CSV booking export and audit log entries
 
 Not yet production-complete:
 - No automatic WhatsApp delivery, SMS OTP, live GPS, online payment gateway, automatic email delivery, automated refund processing or emergency dispatch.
