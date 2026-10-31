@@ -35,6 +35,12 @@ Implemented in source:
 - Cumulative received-payment checks to prevent recording more than the booking total
 - Expanded admin metrics for upcoming/completed trips, vehicle fare totals and completed-trip coordination fees\n- Non-destructive authentication/input-validation diagnostic functions\n- CSV booking export and audit log entries
 
+
+- Driver profile/account editing (name, mobile, licence and active/inactive state)
+- Administrator trip rescheduling before a trip starts, with in-app notices to affected students
+- Trip schedule view and recent audit-log viewer in the administrator dashboard
+- Date-filtered PDF booking report (booking creation date range)
+
 Not yet production-complete:
 - No automatic WhatsApp delivery, SMS OTP, live GPS, online payment gateway, automatic email delivery, automated refund processing or emergency dispatch.
 - No full PWA/offline service-worker installation. Apps Script web apps do not provide normal static asset hosting/service-worker controls; the manifest endpoint is only a best-effort metadata endpoint and is not proof of PWA installation.
