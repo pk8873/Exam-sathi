@@ -37,7 +37,7 @@ function adminSection(which){let d=DATA,body='';if(which==='Overview'){adminView
 function verificationTable(arr,table,cols){
  if(!arr.length)return'<div class="card empty">No records yet.</div>';
  return'<div class="table-wrap"><table><thead><tr>'+cols.map(c=>'<th>'+c+'</th>').join('')+'<th>Actions</th></tr></thead><tbody>'+arr.map(r=>{
-  let edit=table==='Drivers'?'<button class="btn ghost sm" onclick="editDriver(\''+r.ID+'\')">Edit</button> ':'';
+  let edit=table==='Drivers'?'<button class="btn ghost sm" onclick="editDriver(\''+r.ID+'\')">Edit</button> ':table==='Vehicles'?'<button class="btn ghost sm" onclick="editRecord(\'Vehicles\',\''+r.ID+'\')">Edit</button> ':'';
   let review=r.VerificationStatus==='Pending'?'<button class="btn sm" onclick="verifyRecord(\''+table+'\',\''+r.ID+'\',\'Verified\')">Approve</button> <button class="btn ghost sm" onclick="verifyRecord(\''+table+'\',\''+r.ID+'\',\'Rejected\')">Reject</button>':pill(r.VerificationStatus);
   return'<tr>'+cols.map(c=>'<td>'+esc(r[c])+'</td>').join('')+'<td>'+edit+review+'</td></tr>';
  }).join('')+'</tbody></table></div>';
