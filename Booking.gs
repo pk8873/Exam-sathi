@@ -20,3 +20,49 @@ function adminVerify_(p){var s=session_(p,['ADMIN']),table=p.table,id=clean_(p.i
 
 
 function receipt_(p){var sess=session_(p,['ADMIN','STUDENT']),b=rows_('Bookings').filter(function(x){return x.ID===p.bookingId;})[0];if(!b)throw new Error('Booking not found.');if(sess.role==='STUDENT'){var st=rows_('Students').filter(function(x){return x.UserID===sess.userId;})[0];if(!st||st.ID!==b.StudentID)throw new Error('Permission denied.');}var ex=rows_('Exams').filter(function(x){return x.ID===b.ExamID;})[0]||{},rt=rows_('Routes').filter(function(x){return x.ID===b.RouteID;})[0]||{},ce=rows_('ExamCenters').filter(function(x){return x.ID===b.CentreID;})[0]||{},student=rows_('Students').filter(function(x){return x.ID===b.StudentID;})[0]||{};var html='<html><body style="font-family:Arial;padding:28px;color:#17243a"><h1 style="color:#102a56">Exam Saathi</h1><p>Booking receipt · '+b.ID+'</p><hr><h2>'+clean_(student.Name,100)+'</h2><p>Exam: '+clean_(ex.Name,150)+' · Date: '+clean_(ex.ExamDate,30)+'</p><p>Centre: '+clean_(ce.Name,150)+' — '+clean_(ce.Address,250)+'</p><p>Village: '+clean_(rt.Village,100)+' · Pickup: '+clean_(rt.PickupPoint,150)+'</p><hr><table width="100%"><tr><td>Vehicle fare</td><td align="right">₹'+b.VehicleFare+'</td></tr><tr><td>Coordination fee</td><td align="right">₹'+b.CoordinationFee+'</td></tr><tr><th>Total payable</th><th align="right">₹'+b.TotalAmount+'</th></tr></table><p>Status: '+b.Status+' · Payment: '+b.PaymentStatus+'</p><p style="color:#667">This is a booking coordination receipt, not a tax invoice or proof of completed transport.</p></body></html>';var blob=HtmlService.createHtmlOutput(html).getBlob().getAs(MimeType.PDF).setName('Exam-Saathi-'+b.ID+'.pdf');return{ok:true,name:blob.getName(),base64:Utilities.base64Encode(blob.getBytes())};}
+
+
+function adminStudentStatus_(p){
+  var s=session_(p,['ADMIN']),id=clean_(p.studentId,80),status=p.status;
+  if(['Active','Inactive'].indexOf(status)<0)throw new Error('Invalid student status.');
+  var st=rows_('Students').filter(function(x){return x.ID===id;})[0];
+  if(!st)throw new Error('Student not found.');
+  update_('Students',id,{Status:status});
+  update_('Users',st.UserID,{Status:status});
+  audit_(s.userId,'STUDENT_'+status,'Students',id);
+  return{ok:true,message:'Student account '+status.toLowerCase()+'.'};
+}
+function studentProfileUpdate_(p){
+  var s=session_(p,['STUDENT']),st=rows_('Students').filter(function(x){return x.UserID===s.userId&&x.Status==='Active';})[0];
+  if(!st)throw new Error('Student profile not found.');
+  var name=clean_(p.name,100),mobile=clean_(p.mobile,10),village=clean_(p.village,100),guardian=clean_(p.guardianName,100),gm=clean_(p.guardianMobile,10);
+  if(name.length<2||!/^[6-9]\\d{9}$/.test(mobile)||!village||guardian.length<2||!/^[6-9]\\d{9}$/.test(gm))throw new Error('कृपया सही नाम, गाँव और 10 अंकों के मोबाइल नंबर भरें।');
+  var duplicate=rows_('Users').some(function(u){return u.ID!==s.userId&&u.Mobile===mobile;});
+  if(duplicate)throw new Error('यह मोबाइल नंबर दूसरे account में उपयोग हो रहा है।');
+  update_('Students',st.ID,{Name:name,Mobile:mobile,Village:village,GuardianName:guardian,GuardianMobile:gm});
+  update_('Users',s.userId,{Name:name,Mobile:mobile});
+  audit_(s.userId,'STUDENT_PROFILE_UPDATE','Students',st.ID);
+  return{ok:true,message:'Profile updated.'};
+}
+function adminSettingsUpdate_(p){
+  var s=session_(p,['ADMIN']),v=p.settings||{};
+  if(v.siteName!==undefined){var n=clean_(v.siteName,80);if(n.length<2)throw new Error('Website name is required.');PropertiesService.getScriptProperties().setProperty('SITE_NAME',n);}
+  if(v.fee!==undefined){var fee=Number(v.fee);if(!isFinite(fee)||fee<0||fee>5000)throw new Error('Coordination fee must be between 0 and 5000.');PropertiesService.getScriptProperties().setProperty('COORD_FEE',String(fee));}
+  if(v.supportEmail!==undefined){var em=clean_(v.supportEmail,160);if(em&&!validEmail_(em))throw new Error('Invalid support email.');PropertiesService.getScriptProperties().setProperty('SUPPORT_EMAIL',em);}
+  if(v.supportPhone!==undefined){var ph=clean_(v.supportPhone,15);if(ph&&!/^[6-9]\\d{9}$/.test(ph))throw new Error('Support phone must be a valid Indian mobile number.');PropertiesService.getScriptProperties().setProperty('SUPPORT_PHONE',ph);}
+  audit_(s.userId,'SETTINGS_UPDATE','Settings','Website settings changed');
+  return{ok:true,message:'Settings saved.'};
+}
+function adminReportPdf_(p){
+  var s=session_(p,['ADMIN']),from=p.from?new Date(p.from):null,to=p.to?new Date(p.to):null;
+  if(from&&isNaN(from.getTime())||to&&isNaN(to.getTime()))throw new Error('Invalid report date range.');
+  var bookings=rows_('Bookings').filter(function(b){var d=new Date(b.CreatedAt);return(!from||d>=from)&&(!to||d<=to);});
+  var payments=rows_('Payments').filter(function(x){var d=new Date(x.CreatedAt);return(!from||d>=from)&&(!to||d<=to);});
+  var total=payments.filter(function(x){return x.Status==='Received';}).reduce(function(a,x){return a+Number(x.Amount||0);},0);
+  var lines=bookings.map(function(b){var st=rows_('Students').filter(function(x){return x.ID===b.StudentID;})[0]||{};return'<tr><td>'+escHtml_(b.ID)+'</td><td>'+escHtml_(st.Name||'')+'</td><td>'+escHtml_(b.Status)+'</td><td>INR '+Number(b.TotalAmount||0).toFixed(2)+'</td><td>'+escHtml_(b.CreatedAt)+'</td></tr>';}).join('');
+  var html='<html><body style="font-family:Arial;padding:24px"><h1>Exam Saathi — Booking Report</h1><p>Generated: '+escHtml_(now_())+'</p><p>Bookings: '+bookings.length+' | Payments received: INR '+total.toFixed(2)+'</p><table border="1" cellpadding="6" cellspacing="0"><tr><th>Booking ID</th><th>Student</th><th>Status</th><th>Total</th><th>Created</th></tr>'+lines+'</table></body></html>';
+  var blob=HtmlService.createHtmlOutput(html).getBlob().getAs(MimeType.PDF).setName('Exam-Saathi-Report.pdf');
+  audit_(s.userId,'REPORT_PDF','Bookings','rows='+bookings.length);
+  return{ok:true,name:blob.getName(),base64:Utilities.base64Encode(blob.getBytes()),count:bookings.length,totalReceived:total};
+}
+function escHtml_(v){return String(v===undefined||v===null?'':v).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
