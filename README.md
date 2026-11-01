@@ -45,9 +45,9 @@ Not yet production-complete:
 - No automatic WhatsApp delivery, SMS OTP, live GPS, online payment gateway, automatic email delivery, automated refund processing or emergency dispatch.
 - No full PWA/offline service-worker installation. Apps Script web apps do not provide normal static asset hosting/service-worker controls; the manifest endpoint is only a best-effort metadata endpoint and is not proof of PWA installation.
 - Reports include booking CSV and a PDF summary filterable by booking creation date; route-wise, exam-wise, driver-payable and accounting-grade reports are not complete.
-- No self-service password reset; an administrator must handle account recovery securely.
+- Authenticated users can change their password after confirming the current password. Forgotten-password recovery/verified email reset is not implemented.
 - Driver passenger manifest is limited to student names for trips assigned to that driver. Guardian phone numbers are not shown in the driver interface.
-- Driver deletion (intentionally avoided), student deletion (intentionally avoided), exam/centre/route archival controls, route-wise/exam-wise/driver-payable financial reports and full end-to-end automated test coverage remain to be completed. Drivers can be edited or deactivated; vehicles can be edited and verified.
+- Driver deletion (intentionally avoided), student deletion (intentionally avoided), exam/centre/route archival controls, actual driver payout/settlement ledger and full end-to-end automated test coverage remain to be completed. Route-wise, exam-wise and driver trip-fare CSV exports are available; driver trip-fare is not a driver payable calculation. Drivers can be edited or deactivated; vehicles can be edited and verified.
 - Password storage uses salted repeated SHA-256 because Apps Script has no built-in password-hashing/KDF API. This is not a substitute for a dedicated identity provider and requires a security review before commercial launch.
 
 **Do not use this build to transport real students until you have completed the remaining security, privacy, legal, operational and field-verification work.** Verify all drivers, permits, insurance, fitness certificates, fare rules and parent consent in person. This app coordinates requests; it does not itself provide transport, guarantee safety, or provide emergency response.
