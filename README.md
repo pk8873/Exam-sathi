@@ -22,9 +22,9 @@ Implemented in source:
 - Student booking requests and cancellation while pending/review
 - Admin dashboard and management forms for exams, centres, routes and vehicles
 - Driver account creation and driver/vehicle verification controls
-- Group trip assignment with same-route/same-exam validation, duplicate prevention, verified driver/vehicle checks and hard seat-capacity enforcement
+- Group trip assignment with same-route/same-exam validation, duplicate prevention, verified driver/vehicle checks, valid insurance/permit/fitness expiry checks at assignment time and hard seat-capacity enforcement
 - Driver trip status updates; drivers can only see trips assigned to their own driver profile
-- Manual cash/UPI payment recording and UPI reference validation
+- Manual cash/UPI payment recording, UPI reference validation, received-balance checks and serialized payment writes to reduce concurrent overpayment
 - In-app notifications
 - Student-owned PDF receipt generation
 - CSV booking export and admin-generated PDF booking report
@@ -42,7 +42,7 @@ Implemented in source:
 - Date-filtered PDF booking report (booking creation date range)
 
 Not yet production-complete:
-- No automatic WhatsApp delivery, SMS OTP, live GPS, online payment gateway, automatic email delivery, automated refund processing or emergency dispatch.
+- No automatic WhatsApp delivery, SMS OTP, live GPS, online payment gateway, automatic email delivery, automated refund processing or emergency dispatch. Refunds are not processed by the payment-entry screen; do not mark a refund as a received payment.
 - No full PWA/offline service-worker installation. Apps Script web apps do not provide normal static asset hosting/service-worker controls; the manifest endpoint is only a best-effort metadata endpoint and is not proof of PWA installation.
 - Reports include booking CSV and a PDF summary filterable by booking creation date; route-wise, exam-wise, driver-payable and accounting-grade reports are not complete.
 - Authenticated users can change their password after confirming the current password. Forgotten-password recovery/verified email reset is not implemented.
@@ -137,3 +137,8 @@ function backupDatabase() {
 ## License
 
 Choose and add an appropriate license before accepting external contributions or commercial distribution.
+
+
+## Latest hardening note
+
+The latest source change serializes manual payment writes with a script lock, accepts only **Pending** or **Received** payment entries (refunds are deliberately not represented as new payment receipts), and re-checks the vehicle insurance, permit and fitness expiry dates at trip assignment time. This reduces two important operational risks but does not replace payment-provider reconciliation or an independent transport-safety review.
