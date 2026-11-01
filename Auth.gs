@@ -8,3 +8,17 @@ function session_(p,roles){var t=String(p.token||'');if(!t)throw new Error('Plea
 function me_(p){var s=session_(p);return{ok:true,user:{name:s.name,email:s.email,role:s.role}};}
 function logout_(p){var t=String(p.token||'');if(t)CacheService.getScriptCache().remove('SESSION_'+hashToken_(t));return{ok:true};}
 function bootstrapFirstAdmin(email,password){email=clean_(email,160).toLowerCase();password=String(password||'');if(!validEmail_(email)||password.length<14)throw new Error('Valid email and 14+ character password required.');var props=PropertiesService.getScriptProperties();if(props.getProperty('ADMIN_BOOTSTRAPPED')==='YES')throw new Error('Admin already bootstrapped.');if(rows_('Users').some(function(u){return u.Role==='ADMIN';}))throw new Error('An admin already exists.');var salt=Utilities.getUuid();insert_('Users',{ID:id_('USR'),Name:'Administrator',Email:email,Mobile:'',PasswordHash:hashPassword_(password,salt),Salt:salt,Role:'ADMIN',Status:'Active',CreatedAt:now_()});props.setProperty('ADMIN_BOOTSTRAPPED','YES');audit_('SYSTEM','BOOTSTRAP_ADMIN','Users',email);return'Admin account created. Remove this setup function only after successful login if desired.';}
+
+function changePassword_(p){
+ var s=session_(p),u=rows_('Users').filter(function(x){return x.ID===s.userId;})[0];
+ var current=String(p.currentPassword||''),next=String(p.newPassword||'');
+ if(!u||hashPassword_(current,u.Salt)!==u.PasswordHash)throw new Error('Current password is incorrect.');
+ if(next.length<12||next.length>128)throw new Error('New password must be 12–128 characters.');
+ if(hashPassword_(next,u.Salt)===u.PasswordHash)throw new Error('Choose a different password.');
+ var salt=Utilities.getUuid();update_('Users',u.ID,{Salt:salt,PasswordHash:hashPassword_(next,salt)});
+ var oldToken=String(p.token||''),newToken=Utilities.getUuid()+Utilities.getUuid();
+ var session={userId:s.userId,role:s.role,name:s.name,email:s.email};
+ var cache=CacheService.getScriptCache();cache.put('SESSION_'+hashToken_(newToken),JSON.stringify(session),21600);cache.remove('SESSION_'+hashToken_(oldToken));
+ audit_(s.userId,'PASSWORD_CHANGE','Users',u.ID);
+ return{ok:true,token:newToken,message:'Password changed. Your session has been renewed.'};
+}
